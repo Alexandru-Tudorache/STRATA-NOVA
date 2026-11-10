@@ -1,0 +1,40 @@
+# Source archive input selection
+/profiles/ddt_cases/*.dat export-ignore
+/Analysis/guide_data/GUIDE_PROGENITOR_*.csv export-ignore
+
+# Exclude superseded comparison outputs from source archives
+/Analysis/guide_data/n100_* export-ignore
+/Analysis/guide_data/n100_no_csm -export-ignore
+# Exclude superseded figure companions
+/Analysis/figures/GUIDE_CSM_* export-ignore
+/Analysis/figures/GUIDE_LAWS_* export-ignore
+
+# Other input families and upstream publication copies
+/Analysis/DATA/HESMA_DDT_LCS/*.dat export-ignore
+/Analysis/DATA/OBSERVATIONS/*.csv export-ignore
+/profiles/moriya_cases/* export-ignore
+/profiles/piro_cases/* export-ignore
+/guides+papers/BASE_SNEC_NOTES.pdf export-ignore
+/guides+papers/1.01_BASE_SNEC_CHANGES.pdf export-ignore
+/guides+papers/SuperSNEC.pdf export-ignore
+
+# Include the seven DDT pairs, W7 and comparison tables in publication archives.
+/profiles/ddt_cases/wdprofile_ddt_2013_n1.dat -export-ignore
+/profiles/ddt_cases/wdcomp_ddt_2013_n1.dat -export-ignore
+/profiles/ddt_cases/wdprofile_ddt_2013_n3.dat -export-ignore
+/profiles/ddt_cases/wdcomp_ddt_2013_n3.dat -export-ignore
+/profiles/ddt_cases/wdprofile_ddt_2013_n5.dat -export-ignore
+/profiles/ddt_cases/wdcomp_ddt_2013_n5.dat -export-ignore
+/profiles/ddt_cases/wdprofile_ddt_2013_n20.dat -export-ignore
+/profiles/ddt_cases/wdcomp_ddt_2013_n20.dat -export-ignore
+/profiles/ddt_cases/wdprofile_ddt_2013_n40.dat -export-ignore
+/profiles/ddt_cases/wdcomp_ddt_2013_n40.dat -export-ignore
+/profiles/ddt_cases/wdprofile_ddt_2013_n100.dat -export-ignore
+/profiles/ddt_cases/wdcomp_ddt_2013_n100.dat -export-ignore
+/profiles/ddt_cases/wdprofile_ddt_2013_n200.dat -export-ignore
+/profiles/ddt_cases/wdcomp_ddt_2013_n200.dat -export-ignore
+/profiles/moriya_cases/wdprofile_moriya_w7_homologous_20ks.dat -export-ignore
+/profiles/moriya_cases/wdcomp_moriya_w7_sourceNi_20ks.dat -export-ignore
+/Analysis/DATA/HESMA_DDT_LCS/ddt_2013_n100_lightcurve.dat -export-ignore
+/Analysis/DATA/HESMA_DDT_LCS/ddt_2013_n100_lightcurves_early.dat -export-ignore
+/Analysis/DATA/OBSERVATIONS/SN2017cbv_Wee2018_BVR_Table5.csv -export-ignore

@@ -1,0 +1,425 @@
+cff-version: 1.2.0
+title: STRATA-NOVA
+message: >-
+  If you use STRATA-NOVA, please cite this software version and the upstream
+  SNEC and SuperSNEC works. For DDT/HESMA inputs and references, cite the
+  archive and model/product papers listed below. For W7, cite Nomoto et al.
+  (1984) and Thielemann et al. (1986); Moriya et al. (2023) describes the
+  wind-comparison setup. For SN 2017cbv observations, cite Wee et al. (2018),
+  CDS/VizieR J/ApJ/863/90 and the VizieR service. Archive acknowledgement
+  wording is provided in THIRD_PARTY.md and Analysis/DATA/README.md.
+type: software
+version: 1.0.0
+authors:
+  - given-names: Alexandru
+    family-names: Tudorache
+license: CC-BY-NC-SA-4.0
+keywords:
+  - Type Ia supernovae
+  - circumstellar material
+  - radiation hydrodynamics
+  - SNEC
+  - light curves
+abstract: >-
+  STRATA-NOVA is a one-dimensional Lagrangian grey radiation-hydrodynamics
+  extension of SuperSNEC/SNEC for Type Ia supernovae and circumstellar
+  interaction. It includes attached r^-2/r^-3 CSM envelopes, a Badenes
+  accretion-wind prescription, finite constant-density shells, a native
+  staged sequential-encounter manager, Type Ia profile handling, observer
+  light-travel approximations, and radioactive-heating optimizations inherited
+  from SuperSNEC.
+references:
+  - type: article
+    title: >-
+      SuperSNEC: Fast and Accurate Light Curve Production for Large
+      Hydrodynamic Model Grids Using Adaptive Gridding
+    authors:
+      - given-names: Christoffer
+        family-names: Fremling
+        orcid: "https://orcid.org/0000-0002-4223-103X"
+      - given-names: K-Ryan
+        family-names: Hinds
+        orcid: "https://orcid.org/0000-0002-0129-806X"
+    year: 2026
+    doi: "10.48550/arXiv.2603.05680"
+    url: "https://arxiv.org/abs/2603.05680"
+  - type: article
+    title: >-
+      Light curves of core-collapse supernovae with substantial mass loss
+      using the new open-source SuperNova Explosion Code (SNEC)
+    authors:
+      - given-names: Viktoriya
+        family-names: Morozova
+      - given-names: Anthony L.
+        family-names: Piro
+      - given-names: Marco
+        family-names: Renzo
+      - given-names: Christian D.
+        family-names: Ott
+      - given-names: Drew
+        family-names: Clausen
+      - given-names: Sean M.
+        family-names: Couch
+      - given-names: Jim
+        family-names: Ellis
+      - given-names: Luke F.
+        family-names: Roberts
+    journal: The Astrophysical Journal
+    volume: 814
+    start: 63
+    year: 2015
+    doi: "10.1088/0004-637X/814/1/63"
+  - type: software
+    title: 'SNEC: The SuperNova Explosion Code (version 1.01)'
+    authors:
+    - given-names: Viktoriya
+      family-names: Morozova
+    - given-names: Christian D.
+      family-names: Ott
+    - given-names: Anthony L.
+      family-names: Piro
+    url: https://stellarcollapse.org/index.php/SNEC.html
+  - type: article
+    title: Simulating the observed diversity of Type Ia supernovae – Introducing a model
+      data base
+    authors:
+    - given-names: Markus
+      family-names: Kromer
+    - given-names: Sebastian T.
+      family-names: Ohlmann
+    - given-names: Friedrich K.
+      family-names: Röpke
+    year: 2017
+    doi: 10.48550/arXiv.1706.09879
+    url: https://arxiv.org/abs/1706.09879
+  - type: article
+    title: Three-dimensional delayed-detonation models with nucleosynthesis for Type
+      Ia supernovae
+    authors:
+    - given-names: Ivo R.
+      family-names: Seitenzahl
+    - given-names: Franco
+      family-names: Ciaraldi-Schoolmann
+    - given-names: Friedrich K.
+      family-names: Röpke
+    - given-names: Michael
+      family-names: Fink
+    - given-names: Wolfgang
+      family-names: Hillebrandt
+    - given-names: Markus
+      family-names: Kromer
+    - given-names: Rüdiger
+      family-names: Pakmor
+    - given-names: Ashley J.
+      family-names: Ruiter
+    - given-names: Stuart A.
+      family-names: Sim
+    - given-names: Stefan
+      family-names: Taubenberger
+    journal: Monthly Notices of the Royal Astronomical Society
+    volume: 429
+    start: 1156
+    end: 1172
+    year: 2013
+    doi: 10.1093/mnras/sts402
+    url: https://arxiv.org/abs/1211.3015
+  - type: article
+    title: Synthetic light curves and spectra for three-dimensional delayed-detonation
+      models of Type Ia supernovae
+    authors:
+    - given-names: Stuart A.
+      family-names: Sim
+    - given-names: Ivo R.
+      family-names: Seitenzahl
+    - given-names: Markus
+      family-names: Kromer
+    - given-names: Franco
+      family-names: Ciaraldi-Schoolmann
+    - given-names: Friedrich K.
+      family-names: Röpke
+    - given-names: Michael
+      family-names: Fink
+    - given-names: Wolfgang
+      family-names: Hillebrandt
+    - given-names: Rüdiger
+      family-names: Pakmor
+    - given-names: Ashley J.
+      family-names: Ruiter
+    - given-names: Stefan
+      family-names: Taubenberger
+    journal: Monthly Notices of the Royal Astronomical Society
+    volume: 436
+    start: 333
+    end: 347
+    year: 2013
+    doi: 10.1093/mnras/stt1574
+    url: https://arxiv.org/abs/1308.4833
+  - type: article
+    title: The Accuracy, Consistency, and Speed of Five Equations of State for Stellar
+      Hydrodynamics
+    authors:
+    - given-names: F. X.
+      family-names: Timmes
+    - given-names: D.
+      family-names: Arnett
+    journal: The Astrophysical Journal Supplement Series
+    volume: 125
+    start: 277
+    year: 1999
+    doi: 10.1086/313271
+  - type: article
+    title: The Accuracy, Consistency, and Speed of an Electron–Positron Equation of
+      State Based on Table Interpolation of the Helmholtz Free Energy
+    authors:
+    - given-names: F. X.
+      family-names: Timmes
+    - given-names: F. D.
+      family-names: Swesty
+    journal: The Astrophysical Journal Supplement Series
+    volume: 126
+    start: 501
+    year: 2000
+    doi: 10.1086/313304
+  - type: article
+    title: Updated OPAL Opacities
+    authors:
+    - given-names: Carlos A.
+      family-names: Iglesias
+    - given-names: Forrest J.
+      family-names: Rogers
+    journal: The Astrophysical Journal
+    volume: 464
+    start: 943
+    year: 1996
+    doi: 10.1086/177381
+  - type: article
+    title: Theoretical light curves for deflagration models of type Ia supernova
+    authors:
+    - given-names: S. I.
+      family-names: Blinnikov
+    - given-names: F. K.
+      family-names: Röpke
+    - given-names: E. I.
+      family-names: Sorokina
+    - given-names: M.
+      family-names: Gieseler
+    - given-names: M.
+      family-names: Reinecke
+    - given-names: C.
+      family-names: Travaglio
+    - given-names: W.
+      family-names: Hillebrandt
+    - given-names: M.
+      family-names: Stritzinger
+    journal: Astronomy & Astrophysics
+    volume: 453
+    start: 229
+    end: 240
+    year: 2006
+    doi: 10.1051/0004-6361:20054594
+  - type: article
+    title: Optical and Infrared Photometry of the Nearby SN 2017cbv
+    authors:
+      - given-names: Jerrick
+        family-names: Wee
+      - given-names: Nilotpal
+        family-names: Chakraborty
+      - given-names: Jiayun
+        family-names: Wang
+      - given-names: Bryan Edward
+        family-names: Penprase
+    journal: The Astrophysical Journal
+    volume: 863
+    start: 90
+    year: 2018
+    doi: 10.3847/1538-4357/aacd4e
+    url: https://doi.org/10.3847/1538-4357/aacd4e
+  - type: dataset
+    title: Optical and NIR light curves of the nearby SN 2017cbv (CDS/VizieR J/ApJ/863/90)
+    authors:
+      - given-names: Jerrick
+        family-names: Wee
+      - given-names: Nilotpal
+        family-names: Chakraborty
+      - given-names: Jiayun
+        family-names: Wang
+      - given-names: Bryan Edward
+        family-names: Penprase
+    year: 2018
+    doi: 10.26093/cds/vizier.18630090
+    url: https://cdsarc.cds.unistra.fr/viz-bin/cat/J/ApJ/863/90
+  - type: article
+    title: Accreting white dwarf models of Type I supernovae. III - Carbon deflagration supernovae
+    authors:
+    - given-names: Ken'ichi
+      family-names: Nomoto
+    - given-names: Friedrich-Karl
+      family-names: Thielemann
+    - given-names: K.
+      family-names: Yokoi
+    journal: The Astrophysical Journal
+    volume: 286
+    start: 644
+    end: 658
+    year: 1984
+    doi: 10.1086/162639
+  - type: article
+    title: Explosive nucleosynthesis in carbon deflagration models of Type I supernovae
+    authors:
+    - given-names: Friedrich-Karl
+      family-names: Thielemann
+    - given-names: Ken'ichi
+      family-names: Nomoto
+    - given-names: K.
+      family-names: Yokoi
+    journal: Astronomy & Astrophysics
+    volume: 158
+    start: 17
+    end: 33
+    year: 1986
+    url: https://ui.adsabs.harvard.edu/abs/1986A%26A...158...17T/abstract
+  - type: article
+    title: Early excess emission in Type Ia supernovae from the interaction between supernova
+      ejecta and their circumstellar wind
+    authors:
+    - given-names: Takashi J.
+      family-names: Moriya
+    - given-names: Paolo A.
+      family-names: Mazzali
+    - given-names: Chris
+      family-names: Ashall
+    - given-names: Elena
+      family-names: Pian
+    journal: Monthly Notices of the Royal Astronomical Society
+    volume: 522
+    start: 6035
+    end: 6042
+    year: 2023
+    doi: 10.1093/mnras/stad1386
+  - type: article
+    title: Time-dependent three-dimensional spectrum synthesis for Type Ia supernovae
+    authors:
+    - given-names: Markus
+      family-names: Kromer
+    - given-names: Stuart A.
+      family-names: Sim
+    journal: Monthly Notices of the Royal Astronomical Society
+    volume: 398
+    start: 1809
+    end: 1826
+    year: 2009
+    doi: 10.1111/j.1365-2966.2009.15256.x
+  - type: article
+    title: The VizieR database of astronomical catalogues
+    authors:
+    - given-names: François
+      family-names: Ochsenbein
+    - given-names: P.
+      family-names: Bauer
+    - given-names: J.
+      family-names: Marcout
+    journal: Astronomy and Astrophysics Supplement Series
+    volume: 143
+    start: 23
+    end: 32
+    year: 2000
+    doi: 10.1051/aas:2000169
+  - type: article
+    title: 'Constraining Type Ia supernova models: SN 2011fe as a test case'
+    authors:
+    - given-names: F. K.
+      family-names: Röpke
+    - given-names: M.
+      family-names: Kromer
+    - given-names: I. R.
+      family-names: Seitenzahl
+    - given-names: R.
+      family-names: Pakmor
+    - given-names: S. A.
+      family-names: Sim
+    - given-names: S.
+      family-names: Taubenberger
+    - given-names: F.
+      family-names: Ciaraldi-Schoolmann
+    - given-names: W.
+      family-names: Hillebrandt
+    - given-names: G.
+      family-names: Aldering
+    - given-names: P.
+      family-names: Antilogus
+    - given-names: C.
+      family-names: Baltay
+    - given-names: S.
+      family-names: Benitez-Herrera
+    - given-names: S.
+      family-names: Bongard
+    - given-names: C.
+      family-names: Buton
+    - given-names: A.
+      family-names: Canto
+    - given-names: F.
+      family-names: Cellier-Holzem
+    - given-names: M.
+      family-names: Childress
+    - given-names: N.
+      family-names: Chotard
+    - given-names: Y.
+      family-names: Copin
+    - given-names: H. K.
+      family-names: Fakhouri
+    - given-names: M.
+      family-names: Fink
+    - given-names: D.
+      family-names: Fouchez
+    - given-names: E.
+      family-names: Gangler
+    - given-names: J.
+      family-names: Guy
+    - given-names: S.
+      family-names: Hachinger
+    - given-names: E. Y.
+      family-names: Hsiao
+    - given-names: C.
+      family-names: Juncheng
+    - given-names: M.
+      family-names: Kerschhaggl
+    - given-names: M.
+      family-names: Kowalski
+    - given-names: P.
+      family-names: Nugent
+    - given-names: K.
+      family-names: Paech
+    - given-names: R.
+      family-names: Pain
+    - given-names: E.
+      family-names: Pecontal
+    - given-names: R.
+      family-names: Pereira
+    - given-names: S.
+      family-names: Perlmutter
+    - given-names: D.
+      family-names: Rabinowitz
+    - given-names: M.
+      family-names: Rigault
+    - given-names: K.
+      family-names: Runge
+    - given-names: C.
+      family-names: Saunders
+    - given-names: G.
+      family-names: Smadja
+    - given-names: N.
+      family-names: Suzuki
+    - given-names: C.
+      family-names: Tao
+    - given-names: R. C.
+      family-names: Thomas
+    - given-names: A.
+      family-names: Tilquin
+    - given-names: C.
+      family-names: Wu
+    journal: The Astrophysical Journal Letters
+    volume: 750
+    start: L19
+    year: 2012
+    doi: 10.1088/2041-8205/750/1/L19
+    url: https://arxiv.org/abs/1203.4839

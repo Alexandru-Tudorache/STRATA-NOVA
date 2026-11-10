@@ -1,0 +1,46 @@
+Staged-pipeline smoke plots
+---------------------------
+
+`plot_staged_smoke.py` reads the ordinary science products written under
+`<staged_workdir>/final/`.  It intentionally reads matching `rho.xg` and
+`radius.xg` snapshots, so density and radius are never taken from different
+times.  It also inspects the generated shell-attachment profiles directly.
+
+Example:
+
+    python3 Analysis/plot_staged_smoke.py staged_outdir/final \
+        --out Analysis/figures/local \
+        --density-days 2 4 7 7.5 16
+
+An optional HESMA reference light curve can be supplied with
+`--hesma Analysis/DATA/HESMA_DDT_LCS/ddt_2013_n100_lightcurve.dat`. The repository
+includes this N100 ARTIS UVOIR reference and the separate early STELLA UBVR table.
+
+The script writes:
+
+* `staged_density_smoke.png` - evolved density snapshots.  Shock compression
+  is physical here, so a shell does not remain rectangular after interaction.
+* `staged_attachment_density.png` - the generated profile at each shell
+  attachment.  This is the correct diagnostic for checking that
+  `mass_scheme = "constant_density"` is genuinely uniform across the newly
+  attached shell.
+* `staged_luminosity_hesma.png` - `lum_observed.dat`, with an optional HESMA
+  light-curve overlay.
+
+The plotting style follows the project STIX/matplotlib convention used by the
+W7/DDT comparison scripts.  No temporal or spatial smoothing is applied to the
+density or public luminosity data.
+
+Dependencies: Python 3.10+, NumPy and Matplotlib (`python3 -m pip install numpy matplotlib`).
+The full grey bolometric luminosity and the band-limited HESMA UVOIR curve have different wavelength coverage; an overlay does not by itself validate a transport prescription. HESMA acknowledgement and model references are in ../THIRD_PARTY.md
+
+
+Included comparison data and attribution
+---------------------------------------
+
+DATA/README.md describes the two HESMA N100 references and the 35-entry
+SN 2017cbv BVR observation extract, including units, conversions, source papers,
+catalogue DOI and the HESMA/CDS-VizieR acknowledgements. The CSV stores apparent
+magnitudes and measurement errors; any distance or extinction corrections must
+be specified by the plotting setup. The source authors retain credit for these
+datasets. The root THIRD_PARTY.md and CITATION.cff also record their references.

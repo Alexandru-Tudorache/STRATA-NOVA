@@ -1,0 +1,299 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[margin=2.2cm]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern,microtype,amsmath,amssymb,booktabs,tabularx,array}
+\usepackage{graphicx,xcolor,listings,enumitem,hyperref,xurl,caption,fancyhdr,multicol}
+\hypersetup{colorlinks=true,linkcolor=blue!35!black,urlcolor=blue!35!black,
+ pdftitle={STRATA-NOVA -- Modelling the Circumstellar Interaction in Type Ia SNe: A User Guide},
+ pdfauthor={Alexandru Tudorache},pdfsubject={A user guide to the one-dimensional grey code}}
+\setlength{\parindent}{1.2em}
+\setlength{\parskip}{0.25em}
+\setlength{\emergencystretch}{2em}
+\setlength{\headheight}{14pt}
+\setcounter{tocdepth}{1}
+\setlist{leftmargin=1.6em,itemsep=0.1em,topsep=0.25em}
+\pagestyle{fancy}\fancyhf{}
+\fancyhead[L]{STRATA-NOVA}\fancyhead[R]{A User Guide}\fancyfoot[C]{\thepage}
+\lstset{basicstyle=\ttfamily\small,breaklines=true,columns=fullflexible,
+ keepspaces=true,showstringspaces=false,frame=single,rulecolor=\color{black!20},
+ aboveskip=0.5em,belowskip=0.5em}
+\captionsetup{font=small,labelfont=bf,hypcap=false}
+\newcommand{\code}[1]{\nolinkurl{#1}}
+\newcommand{\Msun}{M_{\odot}}
+\graphicspath{{../Analysis/figures/}{Analysis/figures/}}
+\newcommand{\guidefigure}[3]{\begin{center}\begin{minipage}{\linewidth}\centering\includegraphics[width=#1\linewidth]{#2}\captionof{figure}{#3}\end{minipage}\end{center}}
+\title{\vspace{-1.3cm}\textbf{STRATA-NOVA -- Modelling the Circumstellar Interaction in Type Ia SNe: A User Guide}}
+\author{Alexandru Tudorache$^{1}$\\[0.25em]
+\small $^{1}$Department of Physics, University of Surrey,\\
+\small Guildford GU2 7XH, United Kingdom}
+\date{}
+\begin{document}
+\maketitle
+\begin{abstract}
+STRATA-NOVA is a one-dimensional Lagrangian grey radiation-hydrodynamics code, derived from SuperSNEC and SNEC, for investigating the interaction between Type Ia supernova ejecta and circumstellar material. It accepts paired ejecta and composition profiles, constructs finite CSM configurations and follows single or sequential encounters, producing bolometric light curves and approximate broadband photometry.
+\end{abstract}
+
+\subsection*{Attribution and licence}
+STRATA-NOVA is developed from SNEC 1.01 \cite{morozova2015,snecmanual} and SuperSNEC \cite{supersnec2026}, with the additional Type Ia and circumstellar-interaction developments described in this guide. The software is distributed under the Creative Commons Attribution--NonCommercial--ShareAlike 4.0 licence, with the original credits and the applicable source notices retained in the repository. Original simulation models, opacity resources and radiative-transfer comparisons are credited to their respective authors. A record of these sources is provided in \code{NOTICE.md} and \code{THIRD_PARTY.md}.
+
+{\small\tableofcontents}
+
+\section{Introduction and numerical framework}
+The early behaviour of a Type Ia supernova depends on the ejecta structure, radioactive heating and any surrounding circumstellar material (CSM). A change in one of these quantities can alter the rise of the light curve. As such, a useful comparison requires the remaining inputs to be retained and recorded. STRATA-NOVA has been developed around this approach, allowing the user to compare different ejecta in a shared environment, or a fixed ejecta model across several CSM configurations.
+
+The code extends SNEC 1.01 \cite{morozova2015,snecmanual} through SuperSNEC \cite{supersnec2026}. It retains selected deposition and nickel-control optimisations, whilst the production CSM calculation uses a fixed native mass grid within each evolution segment. An attachment adds material at a stage boundary; it does not continuously rezone the evolving segment. The hydrodynamics remain Newtonian and spherically symmetric. The calculation starts from supplied ejecta rather than solving the thermonuclear burning which produced them.
+
+For the enclosed mass coordinate $m$, the geometrical relation is
+\begin{equation}
+ \frac{\partial r}{\partial m}=\frac{1}{4\pi r^2\rho},\qquad
+ v=\left.\frac{\partial r}{\partial t}\right|_m .
+ \label{eq:mass}
+\end{equation}
+Here $r$ is radius, $\rho$ is density, $v$ is radial velocity and $t$ is time. Away from the numerical shock viscosity, the continuum momentum and specific-energy equations take the form
+\begin{equation}
+ \frac{Dv}{Dt}=-4\pi r^2\frac{\partial P}{\partial m}-\frac{Gm}{r^2},\qquad
+ \frac{De}{Dt}=-P\frac{D(1/\rho)}{Dt}-\frac{\partial L}{\partial m}+\dot e_{\rm dep} .
+ \label{eq:hydro}
+\end{equation}
+$P$ and $e$ include the equilibrium gas and radiation contributions, $G$ is the gravitational constant and $\dot e_{\rm dep}$ is deposited radioactive power per unit mass. These expressions describe the underlying framework; the discrete solver also includes compressive artificial viscosity and its heating. Generated Badenes and uniform CSM have additional linear compressive viscosity for resolving the interface.
+
+The grey radiative luminosity is calculated through flux-limited diffusion,
+\begin{equation}
+ L=-(4\pi r^2)^2\frac{ac\lambda_{\rm S}}{3\kappa}\frac{\partial T^4}{\partial m},\qquad
+ \lambda_{\rm S}=\frac{6+3\mathcal R}{6+3\mathcal R+\mathcal R^2},\qquad
+ \mathcal R=\frac{4\pi r^2}{\kappa T^4}\left|\frac{\partial T^4}{\partial m}\right| .
+ \label{eq:fld}
+\end{equation}
+$a$ is the radiation constant, $c$ the speed of light, $T$ temperature and $\kappa$ opacity per unit mass. This is the SNEC convention \cite{snecmanual}, based on flux-limited diffusion \cite{levermore1981}: $\lambda_{\rm S}\rightarrow1$ in the diffusion limit, since the factor $1/3$ is written separately. The code evaluates interface gradients and a temperature-weighted inverse opacity discretely in \code{src/luminosity.F90}.
+
+The examples use \code{eoskey=2}, Saha ionisation and the inherited composition-dependent opacity tables. The Timmes/Saha components and OPAL tables retain their original credits \cite{timmes1999,timmes2000,opal1996}. A configured opacity floor bounds the transport opacity from below; the photospheric optical depth uses the pre-floor opacity. Opacity evaluation imposes a $10^{2.7}$ K input-temperature floor; unavailable tabular values use the existing radial fallback. These are part of the grey approximation, and should be retained when reporting the calculation. Frequency-dependent line transfer and angular structure require a different transport description.
+
+\section{Installation, ejecta inputs and the runner}
+The solver requires GNU Fortran with OpenMP, GNU Make, LAPACK/BLAS, Bash 4 or later and standard Unix utilities. Python 3.10 or later, NumPy and Matplotlib are needed for independent plotting. The distributed DDT inputs are subject to their original data conditions, and should be obtained and acknowledged through the appropriate archive. The examples below use authorised paired profiles. From the repository root, build and run a one-day N20 installation check with:
+\begin{lstlisting}
+make -j2
+./run_campaign.sh --base example/parameters.guide \
+  --model n20 --name n20_smoke \
+  --set simulation_mode=single --set csm=none \
+  --set imax=400 --set tend=86400
+\end{lstlisting}
+The installation check is intentionally separate from the 16-day guide figures. The root \code{parameters} file is a separate N1600C research configuration. The runner checks the build before execution, and changes to the compiler or build flags are detected. Use \code{make portable} to avoid machine-specific architecture flags, or \code{make debug} for bounds and runtime checks. Production flags retain \code{-fprotect-parens} and do not use \code{-ffast-math}.
+
+The paired inputs are \code{profile_name} and \code{comp_profile_name}. The bundled delayed-detonation names can be selected together:
+\begin{lstlisting}
+./run_campaign.sh --list-models
+./run_campaign.sh --base example/parameters.quickstart \
+  --model n100 --name n100_smoke
+\end{lstlisting}
+Model names are case-insensitive. The \code{--model} option selects the matching hydrodynamic and composition files; it does not change the other base settings. Explicit profile overrides take precedence. Custom ejecta remain supported by supplying the two paths with \code{--set}, provided their contents follow the accepted format.
+
+The hydrodynamic file begins with the number of zones, followed by rows containing index, enclosed mass, radius, temperature, density, velocity, electron fraction and angular velocity. Dimensional entries use CGS units. The composition file begins with the zone and isotope counts, then the isotope mass and charge numbers; each subsequent row gives mass, radius and the species mass fractions. The two files must describe the same zones. Use a bundled pair as a format example, and check monotonic mass and radius, positive thermodynamic quantities and normalised abundances when preparing another model.
+
+The imported DDT profiles are radial representations of explosion models distributed through HESMA \cite{hesma2017,seitenzahl2013}. They are already expanding. With the supplied piston-labelled setup, the code detects this state and suppresses a second piston impulse. \code{Ni_by_hand=0} retains the imported nickel distribution, subject to the selected nickel mixing. Changing the inactive \code{Ni_mass} parameter alone will therefore not set the nickel mass in this workflow.
+
+For interactive use, run \code{./run_campaign.sh}, enter one \code{parameter=value} change per prompt and finish with a blank line. Enter \code{?} to view the starting file. For a recorded run, use repeated \code{--set} arguments or a case file. The runner accepts unquoted strings and comma-separated arrays. Relative input paths are resolved from the repository root. A direct solver launch instead reads \code{parameters}, unless \code{SNEC_PARAMETER_FILE} names another file; its selected output directory must exist beforehand.
+
+The examples use 1000 zones, 320 CSM extension points, 50 requested blend points (one for the continuous-envelope variants), a 100 s maximum timestep, 20 deposition points and 32 observer points. Nickel-only mixing uses a $0.15\,\Msun$ boxcar for four passes, with general abundance smoothing disabled. Both opacity-floor settings are $10^{-4}$ cm$^2$ g$^{-1}$. Science profiles are requested every 1000 s; scalar output uses 100 s in the initial/fast phases and 500 s in the middle phase. Actual saved times and stage-end samples should be read from the files.
+
+\section{Choosing a circumstellar prescription}
+\code{simulation_mode=single} evolves one initial configuration. Set \code{csm=none} for bare ejecta, or \code{csm=active} to append CSM. Four supported mass schemes determine how the surrounding density is normalised. The formulae below describe their analytic branches; the generated profile also contains the resolved transition to the live ejecta, and its integrated mass is recorded in the boundary diagnostics.
+
+\subsection{Direct-mass envelopes and uniform shells}
+For \code{mass_scheme=continuous_mass}, the extended CSM follows the fixed Piro-type $r^{-3}$ density law. If $R_{\rm in}$ and $R_{\rm out}$ bound the material, its ideal normalisation is
+\begin{equation}
+ \rho(r)=\frac{A_3}{r^3},\qquad A_3=\frac{M_{\rm CSM}}{4\pi\ln(R_{\rm out}/R_{\rm in})} .
+ \label{eq:direct}
+\end{equation}
+The interface transition is constructed in logarithmic density and the final shell mass is conserved numerically. This law represents extended post-merger material as motivated by Piro \& Morozova \cite{piro2016}, but does not reproduce their entire explosion model.
+
+For \code{mass_scheme=constant_density}, the corresponding ideal shell density is
+\begin{equation}
+ \rho_0=\frac{3M_{\rm CSM}}{4\pi(R_{\rm out}^3-R_{\rm in}^3)} .
+ \label{eq:uniform}
+\end{equation}
+Specify \code{csm_mass_msun} and \code{csm_outer_radius_cm} for a single direct-mass calculation. Continuous-mass envelopes inherit the ejecta-surface velocity; the wind-speed control applies to Badenes and uniform CSM, with their respective interface treatments. A uniform input shell is a statement about the initial attached profile: shock compression subsequently changes its density and width.
+
+\subsection{Steady and non-constant mass-loss winds}
+The \code{constant_mass_loss} scheme follows the steady Moriya-type $r^{-2}$ wind \cite{moriya2023},
+\begin{equation}
+ \rho(r)=\frac{\dot M}{4\pi r^2v_{\rm w}},\qquad
+ M_{\rm CSM}=\dot M\frac{R_{\rm out}-R_{\rm in}}{v_{\rm w}} .
+ \label{eq:wind}
+\end{equation}
+Its rate is \code{csm_mdot_msun_per_yr}. The \code{non_constant_mass_loss} scheme uses a piecewise linear pre-supernova outflow inspired by Badenes et al. \cite{badenes2007}. The rate rises over the first $5\times10^4$ yr, remains constant until $4\times10^5$ yr, and decreases linearly to zero by $8\times10^5$ yr. The explosion occurs during the declining segment at $6\times10^5$ yr. The temporal integral before explosion is normalised to $0.5\,\Msun$, following the tabulated cumulative outflow mass. The schematic Figure~1 rate amplitudes in Badenes et al. and this total-mass normalisation should not be interpreted as identical constraints.
+
+At radius $r$, the pre-explosion launch time is $t_{\rm launch}=t_{\rm SN}-(r-R_{\rm in})/v_{\rm w}$. Therefore this model uses
+\begin{equation}
+ \rho(r)=\frac{\dot M(t_{\rm launch})}{4\pi r^2v_{\rm w}} .
+ \label{eq:variablewind}
+\end{equation}
+The numerical constructor integrates the enclosed shell mass across the physical radius cell. The \code{csm_mdot_msun_per_yr} input is not used for this scheme. At $v_{\rm w}=200$ km s$^{-1}$, a shell of width $10^{16}$ cm samples only about 16 yr of a wind history lasting hundreds of thousands of years. Its radial density can consequently look nearly steady even when the complete history is trapezoidal. A simple pre-explosion wind does not simulate the large shocked bubble and swept-up ambient gas of the full Badenes circumstellar calculations.
+
+\section{Staged encounters and campaign files}
+Set \code{simulation_mode=staged_pipeline} with \code{csm=active} to evolve the ejecta between successive attachments. The user supplies the inner physical radius \code{staged_shell_inner_radii_cm} for each shell, not a collision date. A hydro segment is evolved until its live exterior reaches the requested radius; the recovered age is saved in \code{manifest.json}. Every newly attached CSM shell begins at that live exterior, with outer boundary
+\begin{equation}
+ R_{{\rm out},j}=R_{{\rm attach},j}+\Delta R_j .
+\end{equation}
+Here $\Delta R_j$ is \code{staged_shell_widths_cm}. Each next inner shell radius must exceed the preceding shell's outer edge. The top-level \code{csm_outer_radius_cm} is not used to set staged geometry. All active shell arrays must contain exactly \code{staged_n_shells} values.
+
+For example, the following runner overrides select three physically separated uniform shells:
+\begin{lstlisting}
+--set simulation_mode=staged_pipeline --set csm=active \
+--set mass_scheme=constant_density \\
+--set staged_n_shells=3 \\
+--set staged_shell_inner_radii_cm=6d14,1.5d15,2.4d15 \\
+--set staged_shell_widths_cm=7d14,7d14,7d14 \\
+--set staged_shell_masses_msun=5d-6,5d-6,5d-6 \\
+--set staged_final_day=16 --set csm_temperature_k=-1
+\end{lstlisting}
+These arguments follow \code{./run_campaign.sh --model n100 --name three_shells}. Wind schemes derive their added masses from the rate and radial extent. A non-positive staged CSM temperature requests the equilibrium attachment temperature; a positive value fixes it. Single active-CSM runs require a positive temperature.
+
+The default \code{solar} CSM preset has mass fractions H 0.73, He 0.25, C 0.004, O 0.01, Ne 0.004 and Fe 0.002, mapped onto the supported isotope basis. \code{wd_surface_mean} provides an alternative based on the ejecta surface composition. The width, composition, wind speed, temperature treatment and interface resolution should be included in any comparison, since a change of density prescription alone does not define the whole environment.
+
+A case file places one named calculation on each line, with \code{|} separating overrides:
+\begin{lstlisting}
+# name | parameter=value | parameter=value
+n100_inner | staged_shell_inner_radii_cm=6d14
+n100_outer | staged_shell_inner_radii_cm=1.6d15
+\end{lstlisting}
+Run it with \code{--base FILE --file CASES --jobs 4 --save RESULTS}. Global \code{--set} changes apply to every case, and case-file entries take precedence. Use \code{--dry-run} to prepare and inspect the inputs first. Dry runs check keys and assignment syntax; the solver checks physical values and array compatibility when executed.
+
+Existing selected case directories are reused with a ``Current folder is being overwritten'' notice. A real run replaces their outputs, parameters, log and status. Choose a new save directory when retaining an earlier calculation. Each case records \code{parameters.used}, \code{run.log}, \code{exit_status} and \code{output/}; the campaign also writes a summary table. A failed case returns a non-zero status and retains partial output for inspection.
+
+\section{Luminosity, observer time and saved products}
+The public light-curve product is \code{lum_observed.dat}: time in seconds followed by the selected all-frequency grey luminosity in erg s$^{-1}$. ``Bolometric'' here refers to the frequency-integrated grey estimate, rather than a resolved spectrum. No integration of the optical bands is used to define it.
+
+The selection is implemented in \code{src/analysis.F90}. The inherited photospheric estimate combines the luminosity at optical depth approximately $2/3$ with explicitly deposited radioactive power above that surface. A generated uniform shell uses the larger of this estimate and the outward boundary FLD luminosity. Non-constant wind runs initially use the boundary luminosity, then make a one-time handover after the photospheric estimate catches it, subject to the implemented quarter-day condition. Direct-mass continuous envelopes and bare-ejecta runs use the inherited photospheric estimate. These choices are output prescriptions; they do not add a separate mechanical interaction power to the hydrodynamic evolution. Comparisons between prescriptions should retain this distinction.
+
+For staged runs, \code{staged_equal_arrival_time=1} applies the visible-hemisphere projection after the segments have been joined. If $L_{\rm sel}$ is the selected emission-frame luminosity, the implemented approximation is
+\begin{equation}
+ L_{\rm obs}(t)=\int_0^1 2\mu\,
+ L_{\rm sel}\!\left[t-\frac{R_{\rm ph}(t)}{c}(1-\mu)\right]d\mu .
+ \label{eq:observer}
+\end{equation}
+$\mu$ is the cosine of the surface angle towards the observer and $R_{\rm ph}$ is the photospheric radius at the current output time. The weight follows the projected area of a uniformly emitting spherical surface and integrates to unity. The code holds this radius fixed during each angular integral, uses linear temporal interpolation and, in this campaign, 32 Gauss--Legendre points. If the required history extends before the first sample, it retains the original sample. The projection includes geometrical delays; it does not include Doppler corrections or a new radiation-transport solve.
+
+Individual passband fluxes are projected in linear units before conversion back to magnitudes. With the observer option disabled, and for single runs, the public curve remains in the emission frame. Staged output times are absolute ages, including the initial expansion age inferred for the imported model. Individual stage summaries instead report their local evolution duration. Every attachment starts a fresh solver process with the transferred live state; its timestep and iteration history restart.
+
+\begin{center}\small
+\begin{tabularx}{\linewidth}{@{}lX@{}}\toprule
+Product & Interpretation\\\midrule
+\code{magnitudes.dat} & Time, adopted colour temperature and 11 approximate band magnitudes.\\
+\code{photometry_valid.dat} & Photospheric validity flag; invalid magnitudes should be masked.\\
+\code{rho.xg}, \code{radius.xg}, \code{vel.xg} & Evolved profiles; use matching snapshot times.\\
+\code{generated_csm/} & Attached input profile and boundary diagnostics for that stage.\\
+\code{manifest.json} & Staged ages, radii, masses and observer settings.\\
+\code{run_summary.dat} & Numerical settings and final-segment statistics.\\\bottomrule
+\end{tabularx}
+\end{center}
+\code{output_mode=0} retains full diagnostics, \code{1} minimal output and \code{2} compact science output. Output cadence controls sampling, whilst \code{dtmax} limits the evolution timestep. The latter remains subject to the solver's local stability and convergence conditions.
+
+\section{Fixed CSM: the seven DDT models}
+The first set of calculations uses N1, N3, N5, N20, N40, N100 and N200. Their labels refer to the delayed-detonation ignition-kernel counts \cite{seitenzahl2013}. The imported radial ejecta, composition and nickel distributions differ together; these experiments do not isolate ignition-kernel count from the remaining explosion properties.
+
+The calculations use \code{simulation_mode=staged_pipeline}, \code{staged_n_shells=1}, \code{mass_scheme=constant_density} and \code{staged_shell_masses_msun=5.0d-6}. The finite shell starts at the physical radius \code{staged_shell_inner_radii_cm=6.0d14} and has width \code{staged_shell_widths_cm=1.5d14}. These are the same mass, wind speed and nominal outer extent used for the preceding direct-attachment guide experiment, but the shell is now introduced only once the live ejecta reaches its prescribed inner radius. This changes the interaction age and initial thermodynamic state. The attachment is not scheduled at a selected day.
+
+All seven calculations use \code{csm_wind_velocity_kms=200}, \code{csm_temperature_k=10000}, 256 ejecta zones, a maximum 100 s hydrodynamic timestep, \code{staged_observer_nmu=32} and \code{staged_equal_arrival_time=1}. Each run evolves to an absolute age of 16 days. The same \code{Ni_by_hand=0}, imported composition and grey transport controls are retained for every model. The green N100 no-CSM control is still an ordinary single-mode run, since there is no circumstellar shell to attach; its observer prescription is therefore not identical to the staged output.
+
+\guidefigure{1}{GUIDE_DDT_LUM.png}{All-frequency grey observer luminosities for the seven single-shell DDT calculations. Teal stars show the supplied HESMA N100 ARTIS UVOIR luminosities \cite{sim2013,hesma2017}; the dashed green curve is the separately evolved no-CSM N100 control. The model output preserves its natural observer age, without shifting or rescaling the interaction features.}
+
+\guidefigure{1}{GUIDE_DDT_PROGENITOR_DENSITY.png}{Density distributions for the seven delayed-detonation ejecta at the first-shell attachment. The first panel shows the radial structure including the finite CSM region; the second resolves the transition between the ejecta and the surrounding shell. Each profile is shown at its own physical encounter age.}
+
+The staged encounter produces a feature in the first few days, followed by the radioactive rise. The HESMA ARTIS UVOIR points and the grey all-frequency luminosities also differ in wavelength coverage, and should not be taken as identical bolometric measurements. The shell temperature and the ejecta--CSM velocity discontinuity remain part of the configured initial encounter state.
+
+\section{Approximate broadband photometry}
+The passbands are calculated using the inherited blackbody and bolometric-correction approximations. For consistency with the reference archive, the figures use uppercase $U$, $B$, $V$ and $R$; these are not Sloan $u$ and $r$. The same colour order, four-panel structure and magnitude limits from the reference calculation are preserved.
+
+The observations of SN~2017cbv provide an external reference for the broadband evolution \cite{wee2018,hosseinzadeh2017}. Time is measured from an estimated first-light epoch of MJD 57821.9, with the small rest-frame redshift correction applied. Apparent magnitudes are converted using a distance modulus of $30.58\pm0.05$ mag \cite{wang2020} and an adopted Galactic colour excess of $E(B-V)=0.15$ mag. Individual photometric uncertainties are plotted, with the distance uncertainty treated as a shared systematic in the magnitude panels. No light-curve shift or scale factor is fitted to improve agreement. Differences in filter transmission and radiation-transport treatment remain relevant when comparing the observed supernova with numerical models.
+
+\guidefigure{1}{GUIDE_DDT_PHOTOMETRY.png}{The $U$, $B$, $V$ and $R$ light curves of seven delayed-detonation models interacting with a single uniform shell. HESMA N100 STELLA reference points are plotted as teal stars \cite{hesma2017,blinnikov2006}. Blue circles and error bars show the measured $B$, $V$ and $R$ photometry of SN~2017cbv \cite{wee2018}; the green dashed curve represents N100 ejecta without CSM. No observed $U$ measurements are included in the adopted dataset.}
+
+All plotted STRATA-NOVA magnitude samples are checked against \code{photometry_valid.dat}, but no valid part of a curve is smoothed. The green control is retained because an isolated ejecta model is required to distinguish the interaction model from the underlying radioactive rise. It is not projected through the staged equal-arrival-time routine, so the two output prescriptions must be accounted for in any subtraction. As with the bolometric reference, differences relative to STELLA should not be attributed uniquely to CSM interaction: its frequency-dependent transport does not share the same approximation as the grey solver \cite{blinnikov2006,snecmanual}.
+
+\section{Colour evolution}
+The $B-V$ colour is calculated from the $B$ and $V$ magnitudes at corresponding simulation times. The seven DDT calculations exhibit distinct colour evolution, reflecting differences in their ejecta structure and radioactive heating as well as their interaction with CSM. They are not variations of a single fixed ejecta model, so a direct fit between ignition-kernel count and peak brightness would not isolate the effect of circumstellar interaction.
+
+\guidefigure{0.88}{GUIDE_DDT_B_MINUS_V.png}{The $B-V$ colour evolution of the delayed-detonation models and SN~2017cbv. Blue observational markers are formed from simultaneous $B$ and $V$ measurements \cite{wee2018}, with uncertainties propagated in quadrature. The green dashed line shows the N100 no-CSM control. HESMA colour points are omitted.}
+
+\section{Fixed N100: the radial extent of circumstellar material}\label{sec:fixed_n100}
+The second set of calculations isolates a single property of the circumstellar environment by retaining the same N100 ejecta and changing the radial width of a uniform-density shell. The material is placed at an inner radius of $1.5\times10^{15}$ cm with a fixed mass of $5\times10^{-6}\,\Msun$, whilst the shell width is varied between $10^{14}$ and $7\times10^{14}$ cm. All calculations use the radius-triggered staged pipeline with one shell, a nominal shell velocity of 200 km s$^{-1}$, 256 ejecta zones and 32 observer angles. The calculated interaction is therefore determined by the expansion of the ejecta rather than a chosen encounter time.
+
+The interaction is most readily identified in the distinct brightening around the sixth to seventh day. The effect is visible in all four passbands, whilst the underlying radioactive rise remains similar between the models. The width of a finite CSM shell is therefore a useful geometric parameter for exploring the duration and appearance of an early excess, provided that the shell mass and ejecta properties are kept fixed. In these experiments, the optical excess is not attributed to a changed radioactive nickel distribution.
+
+\subsection*{Relation to circumstellar-wind and observational studies}
+A uniform shell does not represent a steady stellar wind. In the steady-flow approximation, the radial density instead follows $\rho(r)=\dot M/(4\pi v_{\rm w}r^2)$, depending on the mass-loss rate $\dot M$ and wind velocity $v_{\rm w}$. Moriya et al. \cite{moriya2023} investigate wind rates from approximately $10^{-5}$ to $10^{-3}\,\Msun\,\mathrm{yr}^{-1}$, with substantial early optical excesses at sufficiently high wind density. Extending such a calculation to $10^{-2}\,\Msun\,\mathrm{yr}^{-1}$ would be a separate, more extreme parameter exploration, rather than a reproduction of their published grid. The staged grey calculations should not be assumed to reproduce the spectral evolution calculated with STELLA.
+
+The bolometric and pseudo-bolometric light curves in Moriya et al.'s Figure 2 are theoretical predictions from STELLA, not a table of observational bolometric measurements \cite{moriya2023}. Their observational comparisons elsewhere in the paper employ passband photometry and colour measurements from previously published supernova surveys. Dilday et al. \cite{dilday2012} provide direct observational evidence for CSM around PTF 11kx, including delayed interaction and multi-component absorption, but their preliminary photometry is not presented as a homogeneous, tabulated bolometric time series. Accordingly, no observational bolometric points from those papers are superposed on the present grey luminosity curves without independently verifiable measurements, band coverage and an explosion-time reference. Their results provide physical context for the shell and wind scenarios, rather than a direct measurement set for fitting this sixteen-day example.
+
+
+\noindent The broadband response of the models is shown below.
+
+\guidefigure{0.86}{GUIDE_N100_BROAD_CSM_PHOTOMETRY.png}{Approximate $U$, $B$, $V$ and $R$ magnitudes and $B-V$ colours for fixed N100 ejecta interacting with constant-density shells. Each shell has $5\times10^{-6}\,\Msun$ of material, with radial widths of $1.0$, $2.5$, $5.0$ and $7.0\times10^{14}$ cm. HESMA N100 STELLA magnitudes are shown as teal stars \cite{hesma2017,blinnikov2006}; SN~2017cbv measurements in $B$, $V$ and $R$ as blue circles with errors \cite{wee2018}. The dashed green curve shows the no-CSM control.}
+
+\guidefigure{0.90}{GUIDE_N100_CSM_DENSITY_FULL.png}{Full initial density distributions for N100 ejecta surrounded by four circumstellar prescriptions. The left panel shows the complete radial extent of each generated profile; the right panel resolves the surrounding matter in greater detail. Constant-density shells, extended $r^{-3}$ material, steady $r^{-2}$ winds and time-dependent mass-loss winds have different outer density normalisations. The extremely low numerical density floor is omitted from the logarithmic display.}
+
+The choice of density prescription affects how circumstellar matter is distributed before collision. A finite shell and a freely expanding wind cannot be interchanged on the basis of their total mass alone. Here, each profile is shown when the ejecta first reach the surrounding material, before the subsequent collision modifies its structure.
+
+\section{Reproducing and citing a calculation}
+The supplied \code{example/parameters.guide} is the base for the new figures. For the seven-model comparison, each model has one radius-triggered, constant-density shell. The following is an example of the required controls:
+\begin{lstlisting}
+./run_campaign.sh --base example/parameters.guide \
+  --model n100 --name ddt_staged_n100 \
+  --set simulation_mode=staged_pipeline --set csm=active \
+  --set mass_scheme=constant_density \
+  --set staged_n_shells=1 \
+  --set staged_shell_inner_radii_cm=6d14 \
+  --set staged_shell_masses_msun=5d-6 \
+  --set staged_shell_widths_cm=1.5d14 \
+  --set staged_final_day=16 \
+  --set staged_observer_nmu=32 \
+  --set staged_equal_arrival_time=1 \
+  --set csm_wind_velocity_kms=200 \
+  --set csm_temperature_k=10000 \
+  --set imax=256 --set dtmax=100
+\end{lstlisting}
+Repeat for N1, N3, N5, N20, N40 and N200 with the same controls. The green control instead uses \code{simulation_mode=single} and \code{csm=none}, with its output directory created by the campaign runner. For the fixed-N100 single-shell density and width comparisons, use the same staged structure, with \code{csm_temperature_k=-1}, changing only the requested shell radius, width or mass scheme. For example, the broad single-shell case at a larger radius uses:
+\begin{lstlisting}
+./run_campaign.sh --base example/parameters.guide \
+  --model n100 --name n100_one_broad_shell \
+  --set simulation_mode=staged_pipeline \
+  --set csm=active --set mass_scheme=constant_density \
+  --set staged_n_shells=1 \
+  --set staged_shell_inner_radii_cm=1.5d15 \
+  --set staged_shell_masses_msun=5d-6 \
+  --set staged_shell_widths_cm=5d14 \
+  --set staged_final_day=16 \
+  --set staged_equal_arrival_time=1 \
+  --set staged_observer_nmu=32 \
+  --set csm_temperature_k=-1 --set imax=256
+\end{lstlisting}
+The examples can be extended to different shell masses, widths and radii using the same parameter controls. Recorded encounter ages, input profiles, observer luminosities and the configuration file should accompany any quantitative comparison. The numerical approximation is most reliable when the light-curve features and their measured timescales are checked at more than one grid resolution.
+
+The figures are retained in \code{Analysis/figures}. The HESMA DDT reference points are theoretical radiative-transfer products \cite{sim2013,hesma2017}, whilst STRATA-NOVA provides a grey radiation-hydrodynamic estimate. The $U$, $B$, $V$ and $R$ magnitudes use the corresponding passbands rather than a wavelength-integrated optical luminosity. These differences in method are relevant when interpreting agreement between the curves.
+
+The SNEC \cite{morozova2015,snecmanual} and SuperSNEC \cite{supersnec2026} references acknowledge the code's foundations. The adopted delayed-detonation ejecta models are described by Seitenzahl et al. \cite{seitenzahl2013}, whilst Sim et al. \cite{sim2013} provide the associated ARTIS light curves and spectra. The early STELLA reference magnitudes follow the HESMA distribution and its cited radiative-transfer calculations \cite{blinnikov2006,hesma2017}. The archive requests the following acknowledgement: ``This work made use of the Heidelberg Supernova Model Archive (HESMA), \href{https://hesma.h-its.org}{https://hesma.h-its.org}.'' Model and software attribution is maintained in the repository's citation and source-notice files.
+
+{\fontsize{8.0}{9.3}\selectfont
+\begin{multicols}{2}
+\begin{thebibliography}{99}\setlength{\itemsep}{0em}
+\bibitem{morozova2015} Morozova, V., Piro, A. L., Renzo, M., et al. (2015). Light Curves of Core-Collapse Supernovae with Substantial Mass Loss Using the New Open-Source SuperNova Explosion Code (SNEC). \textit{ApJ}, 814, 63. \href{https://doi.org/10.1088/0004-637X/814/1/63}{doi:10.1088/0004-637X/814/1/63}.
+\bibitem{snecmanual} Morozova, V., Ott, C. D. \& Piro, A. L. (2015). \textit{SNEC: The SuperNova Explosion Code. Notes}. \href{https://stellarcollapse.org/codes/snec_notes-1.00.pdf}{Technical manual}, with the \href{https://stellarcollapse.org/index.php/SNEC.html}{SNEC code webpage and 1.01 changelog}.
+\bibitem{supersnec2026} Fremling, C. \& Hinds, K-Ryan (2026). SuperSNEC: Fast and Accurate Light Curve Production for Large Hydrodynamic Model Grids Using Adaptive Gridding. \href{https://arxiv.org/abs/2603.05680}{arXiv:2603.05680}.
+\bibitem{levermore1981} Levermore, C. D. \& Pomraning, G. C. (1981). A Flux-Limited Diffusion Theory. \textit{ApJ}, 248, 321--334. \href{https://doi.org/10.1086/159157}{doi:10.1086/159157}.
+\bibitem{piro2016} Piro, A. L. \& Morozova, V. S. (2016). Exploring the Potential Diversity of Early Type Ia Supernova Light Curves. \textit{ApJ}, 826, 96. \href{https://arxiv.org/abs/1512.03442}{arXiv:1512.03442}.
+\bibitem{badenes2007} Badenes, C., Hughes, J. P., Bravo, E. \& Langer, N. (2007). Are the Models for Type Ia Supernova Progenitors Consistent with the Properties of Supernova Remnants? \textit{ApJ}, 662, 472--486. \href{https://arxiv.org/abs/astro-ph/0703321}{arXiv:astro-ph/0703321}.
+\bibitem{dilday2012} Dilday, B., Howell, D. A., Cenko, S. B., et al. (2012). PTF 11kx: A Type-Ia Supernova with a Symbiotic Nova Progenitor. \textit{Science}, 337, 942--945. \href{https://arxiv.org/abs/1207.1306}{arXiv:1207.1306}.
+\bibitem{moriya2023} Moriya, T. J., Mazzali, P. A., Ashall, C. \& Pian, E. (2023). Early excess emission in Type Ia supernovae from the interaction between supernova ejecta and their circumstellar wind. \textit{MNRAS}, 522, 6035--6042. \href{https://doi.org/10.1093/mnras/stad1386}{doi:10.1093/mnras/stad1386}.
+\bibitem{hesma2017} Kromer, M., Ohlmann, S. T. \& R\"opke, F. K. (2017). Simulating the observed diversity of Type Ia supernovae---Introducing a model data base. \href{https://arxiv.org/abs/1706.09879}{arXiv:1706.09879}.
+\bibitem{seitenzahl2013} Seitenzahl, I. R., Ciaraldi-Schoolmann, F., R\"opke, F. K., et al. (2013). Three-dimensional delayed-detonation models with nucleosynthesis for Type Ia supernovae. \textit{MNRAS}, 429, 1156--1172. \href{https://arxiv.org/abs/1211.3015}{arXiv:1211.3015}.
+\bibitem{sim2013} Sim, S. A., Seitenzahl, I. R., Kromer, M., Ciaraldi-Schoolmann, F., R\"opke, F. K., Fink, M., Hillebrandt, W., Pakmor, R., Ruiter, A. J. \& Taubenberger, S. (2013). Synthetic light curves and spectra for three-dimensional delayed-detonation models of Type Ia supernovae. \textit{MNRAS}, 436, 333--347. \href{https://doi.org/10.1093/mnras/stt1574}{doi:10.1093/mnras/stt1574}.
+\bibitem{blinnikov2006} Blinnikov, S. I., R\"opke, F. K., Sorokina, E. I., et al. (2006). Theoretical light curves for deflagration models of type Ia supernova. \textit{A\&A}, 453, 229--240. \href{https://doi.org/10.1051/0004-6361:20054594}{doi:10.1051/0004-6361:20054594}.
+\bibitem{timmes1999} Timmes, F. X. \& Arnett, D. (1999). The Accuracy, Consistency, and Speed of Five Equations of State for Stellar Hydrodynamics. \textit{ApJS}, 125, 277. \href{https://doi.org/10.1086/313271}{doi:10.1086/313271}.
+\bibitem{timmes2000} Timmes, F. X. \& Swesty, F. D. (2000). The Accuracy, Consistency, and Speed of an Electron--Positron Equation of State Based on Table Interpolation of the Helmholtz Free Energy. \textit{ApJS}, 126, 501. \href{https://doi.org/10.1086/313304}{doi:10.1086/313304}.
+\bibitem{opal1996} Iglesias, C. A. \& Rogers, F. J. (1996). Updated OPAL Opacities. \textit{ApJ}, 464, 943. \href{https://doi.org/10.1086/177381}{doi:10.1086/177381}.
+\bibitem{wee2018} Wee, J., Chakraborty, N., Wang, J. \& Penprase, B. E. (2018). Optical and Infrared Photometry of the Nearby SN 2017cbv. \textit{ApJ}, 863, 90. \href{https://doi.org/10.3847/1538-4357/aacd4e}{doi:10.3847/1538-4357/aacd4e}.
+\bibitem{wang2020} Wang, L., Contreras, C., Hu, M., et al. (2020). Optical and Near-infrared Observations of the Nearby SN Ia 2017cbv. \textit{ApJ}, 904, 14. \href{https://cdsarc.cds.unistra.fr/viz-bin/ReadMe/J/ApJ/904/14}{CDS observational catalogue}.
+\bibitem{hosseinzadeh2017} Hosseinzadeh, G., Sand, D. J., Valenti, S., et al. (2017). Early Blue Excess from the Type Ia Supernova 2017cbv and Implications for Its Progenitor. \textit{ApJL}, 845, L11. \href{https://arxiv.org/abs/1706.08990}{arXiv:1706.08990}.
+\end{thebibliography}
+\end{multicols}}
+\end{document}

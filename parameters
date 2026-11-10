@@ -1,0 +1,216 @@
+#____________LAUNCH_____________
+
+outdir             = "outdir"
+
+#___________PROFILE_____________ ! Comment out which profiles you don't want to use
+
+! HESMA delayed-detonation (DDT) models
+
+profile_name        = "profiles/ddt_cases/wdprofile_ddt_2013_n100.dat"
+comp_profile_name   = "profiles/ddt_cases/wdcomp_ddt_2013_n100.dat"
+
+! ===============================
+
+! W7 model
+
+! profile_name        = "profiles/moriya_cases/wdprofile_moriya_w7_homologous_20ks.dat"
+! comp_profile_name   = "profiles/moriya_cases/wdcomp_moriya_w7_sourceNi_20ks.dat"
+
+! ===============================
+
+! Piro model
+
+! profile_name        = "profiles/piro_cases/wdprofile_bare.dat"
+! comp_profile_name   = "profiles/piro_cases/wdcomp_bare.dat"
+
+#_____________CSM________________
+
+! CSM switch: "none" or "active"
+
+! Mass schemes
+! continuous_mass uses fixed mass in a r^-3 envelope
+! constant_mass_loss uses a steady r^-2 wind
+! non_constant_mass_loss uses pre-explosion trapezoidal wind
+! constant_density uses a finite uniform shell with fixed mass
+
+csm                    = "active"
+mass_scheme            = "non_constant_mass_loss"
+
+csm_outer_radius_cm    = 1.0d16 
+
+csm_mass_msun          = 3.0d-4 
+csm_mdot_msun_per_yr   = 5.0d-6 
+csm_wind_velocity_kms  = 2.0d2 
+csm_temperature_k      = -1.0d0 
+csm_extension_zones    = 320
+csm_blend_zones        = 50
+csm_composition_preset = "solar"
+csm_surface_mix_zones  = 30
+
+
+#______SIMULATION_MANAGER________
+
+! Choose exactly one run mode:
+!   "single"          -> one ordinary STRATA-NOVA run using csm below
+!   "staged_pipeline" -> requires csm="active"; sequential finite-shell encounters with automatic
+!                        outdir handoffs between fresh STRATA-NOVA processes
+!
+! The staged manager INHERITS the normal controls later in this file:
+!   imax, Ni_quad_npoints, dtmax, output_mode, all dtout* cadences,
+!   csm_extension_zones and csm_blend_zones
+
+simulation_mode = "staged_pipeline"
+
+! ---------------- Staged-pipeline controls (multiple shell) ----------------
+
+staged_workdir = "csm"
+staged_n_shells = 1
+staged_final_day = 16.0d0
+staged_equal_arrival_time = 1
+staged_observer_nmu = 32
+
+! ---------------- Per-shell arrays ----------------
+
+staged_shell_inner_radii_cm   = 6.0d14 ! Physical radius of the first shell
+staged_shell_masses_msun      = 5.0d-6 ! Direct-mass modes only
+staged_shell_widths_cm        = 1.5d14 ! R_outer = live R_attach + width
+
+#__________EXPLOSION_____________
+
+! Modes: "Thermal_Bomb" or "Piston_Explosion"
+
+initial_data        = "Piston_Explosion"
+
+piston_vel          = 3.9d9
+piston_tstart       = 0.0d0
+piston_tend         = 1.0d-2
+
+final_energy        = 1.0d51
+bomb_tstart         = 0.0d0
+bomb_tend           = 0.01d0
+bomb_mass_spread    = 0.2d0
+bomb_start_point    = 1
+
+#_____________GRID_______________
+
+imax                = 1000
+
+grid_mode           	   = "legacy_native"
+grid_update_interval_days  = 0.1d0
+
+mass_excision       = 0
+mass_excised        = 0.01d0
+
+#___________EVOLUTION_____________
+
+radiation           = 1
+eoskey              = 2
+Ni_switch           = 1
+initial_model_age_s = 0.0d0 ! Age of model start
+Ni_mass             = 0.5
+
+! Ni Kernel options:
+! "1" SNEC-like flat step function
+! "2" SuperSNEC exponential tail
+! "3" SuperSNEC two-component dense core/transparent outer shell
+
+Ni_mix_fraction            = 0.50d0
+Ni_mix_component2_fraction = 0.30d0
+Ni_mix_component2_extent   = 0.50d0
+Ni_mix_kernel              = 1
+Ni_by_hand 	    	   = 0
+
+Ni_period            = 1.0d4
+Ni_period_max        = 5.456d5
+Ni_fractional_change = 0.01d0
+Ni_quad_npoints      = 20
+
+saha_ncomps          = 1
+smooth_ni_luminosity = 1
+
+boxcar_smoothing            = 0
+boxcar_smooth_ni            = 1
+boxcar_nominal_mass_msun    = 0.200d0
+boxcar_number_iterations    = 4
+boxcar_ni_nominal_mass_msun = 0.150d0
+boxcar_ni_number_iterations = 4
+
+opacity_floor_envelope = 0.0001d0
+opacity_floor_core     = 0.0001d0
+
+#___________TIMING_______________
+
+ntmax               = 10000000000000
+dtout_scalar        = 1.0d2
+
+! ===============================
+
+! STANDARD RUN:
+
+! tend                = 6.912d5
+
+! dtout               = 864.0d0
+! dtout_mid           = 864.0d0
+! dtout_fast          = 864.0d0
+
+! dtout_scalar_mid    = 864.0d0
+! dtout_scalar_fast   = 864.0d0
+
+! ===============================
+
+! SHORT RUN:
+
+! tend                = 2.000d4
+
+! dtout               = 100.0d0
+! dtout_mid           = 100.0d0
+! dtout_fast          = 100.0d0
+
+! dtout_scalar_mid    = 100.0d0
+! dtout_scalar_fast   = 100.0d0
+
+! ===============================
+
+! EXTENDED RUN:
+
+tend                = 1.382d6
+
+dtout               = 1.0d2
+dtout_mid           = 1.0d3
+dtout_fast          = 1.0d3
+
+dtout_scalar_mid    = 5.0d3
+dtout_scalar_fast   = 5.0d3
+
+! ===============================
+
+output_mid_transition_days  = 1.0d0
+output_late_transition_days = 2.0d1
+
+dtout_check         = 1.7d9
+ntout               = -1
+ntout_scalar        = -1
+ntout_check         = -1
+ntinfo              = 1000
+
+! Timestep / Performance controls
+
+dtmin                         = 1.0d-10
+dtmax                         = 1.0d2
+evolution_temperature_floor_k = 1.00d2
+
+#___________SOLVER_______________
+
+epstol_hydro        = 1.0d-4
+epstol_rad          = 1.0d-4
+itmax_hydro         = 300
+itmax_rad           = 300
+
+ni_raytrace_opt     = 1
+ni_ray_interp       = 1
+
+output_mode            = 2
+
+#____________SEDOV-TEST_________________
+
+sedov               = 0

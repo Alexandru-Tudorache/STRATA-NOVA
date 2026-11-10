@@ -1,0 +1,113 @@
+name: Build and release checks
+on: [push, pull_request]
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install compiler and linear algebra libraries
+        run: sudo apt-get update && sudo apt-get install -y gfortran liblapack-dev libblas-dev
+      - name: Environment and production build checks
+        run: make check
+      - name: Campaign-runner dry run
+        run: ./run_campaign.sh --file example/campaign.example --dry-run --save /tmp/strata-campaign-check --jobs 2 --quiet
+      - name: Bounds-checked build
+        run: make debug
+      - name: Runtime and failure checks (requires installed DDT inputs)
+        if: >-
+          ${{ hashFiles('profiles/ddt_cases/wdprofile_ddt_2013_n20.dat') != '' &&
+              hashFiles('profiles/ddt_cases/wdcomp_ddt_2013_n20.dat') != '' &&
+              hashFiles('profiles/ddt_cases/wdprofile_ddt_2013_n3.dat') != '' &&
+              hashFiles('profiles/ddt_cases/wdcomp_ddt_2013_n3.dat') != '' }}
+        env:
+          OMP_NUM_THREADS: 1
+          OPENBLAS_NUM_THREADS: 1
+          F90FLAGS: -O0 -g -fcheck=all -fbacktrace -fopenmp
+        run: |
+          python3 - <<'PYTHON'
+          import os, pathlib, re, subprocess, tempfile
+          root = pathlib.Path.cwd()
+          base = (root / 'example/parameters.quickstart').read_text()
+          with tempfile.TemporaryDirectory(prefix='strata checks ') as tmp:
+              tmp = pathlib.Path(tmp)
+              def run(name, overrides, succeeds):
+                  out = tmp / name
+                  out.mkdir()
+                  values = {'outdir': '"' + str(out) + '"', **overrides}
+                  text = base
+                  for key, value in values.items():
+                      text, count = re.subn(r'^' + re.escape(key) + r'\s*=.*$', key + ' = ' + value, text, flags=re.M)
+                      if not count:
+                          text += '\n' + key + ' = ' + value + '\n'
+                  # Longer keys first exercises exact matching rather than prefixes.
+                  lines = text.splitlines()
+                  active = [x for x in lines if re.match(r'^\w+\s*=', x)]
+                  active.sort(key=lambda x: len(x.split('=')[0]), reverse=True)
+                  text = '\n'.join(active + [x for x in lines if x not in active]) + '\n'
+                  params = tmp / (name + '.parameters')
+                  params.write_text(text)
+                  with (tmp / (name + '.log')).open('w') as log:
+                      result = subprocess.run(['./snec'], env=dict(os.environ, SNEC_PARAMETER_FILE=str(params)), stdout=log, stderr=subprocess.STDOUT, timeout=120)
+                  assert (result.returncode == 0) == succeeds, name
+                  if succeeds:
+                      assert (out / 'run_summary.dat').is_file()
+                      assert (out / 'lum_observed.dat').stat().st_size > 0
+                  return out
+              run('smoke', {}, True)
+              for scheme in ('continuous_mass', 'constant_density'):
+                  for shell_mass in ('1d-5', '1d-3'):
+                      out = run('geometry-' + scheme + '-' + shell_mass, {
+                          'csm': '"active"', 'mass_scheme': '"' + scheme + '"',
+                          'csm_mass_msun': shell_mass, 'csm_outer_radius_cm': '1d15',
+                          'csm_temperature_k': '1d4', 'csm_extension_zones': '64',
+                          'csm_blend_zones': '1', 'tend': '1d-2'}, True)
+                      lines = (out / 'generated_csm/hydro_mapping_diagnostics.dat').read_text().splitlines()
+                      diag = dict(line.split('=', 1) for line in lines if '=' in line)
+                      diag = {k.strip(): v.strip() for k, v in diag.items()}
+                      assert float(diag['outer_radius_relative_error']) < 1e-12
+                      minimum_intervals = 16 if scheme == 'constant_density' else 24
+                      assert int(diag['csm_hydro_intervals']) >= minimum_intervals
+                      expected = float(shell_mass.replace('d', 'e')) * 1.98847e33
+                      assert abs(float(diag['mapped_csm_mass_g']) / expected - 1) < 1e-6
+                      expected_velocity = ('surface_comoving_unchanged' if scheme == 'continuous_mass'
+                                           else 'separated_physical_radius_linear')
+                      assert diag['velocity_transition_scheme'] == expected_velocity
+              run('step limit', {'ntmax': '1'}, False)
+              run('overflow', {'ntmax': '9223372036854775808'}, False)
+              run('invalid', {'dtmax': '100.0d0, 200.0d0'}, False)
+              protected = tmp / 'protected'
+              protected.mkdir()
+              marker = protected / 'keep'
+              marker.write_text('keep')
+              run('protected input', {'outdir': '"' + str(protected) + '"', 'profile_name': '"' + str(marker) + '"'}, False)
+              assert marker.read_text() == 'keep'
+              campaign = tmp / 'campaign'
+              command = ['bash', 'run_campaign.sh', '--base', 'example/parameters.quickstart', '--current', '--quiet', '--save', str(campaign)]
+              for _ in range(2):
+                  assert subprocess.run(command, stdout=subprocess.DEVNULL, timeout=120).returncode == 0
+              protected_out = campaign / 'protected' / 'output'
+              protected_out.mkdir(parents=True)
+              profile = protected_out / 'profile.dat'
+              profile.write_text('keep model input')
+              protected_command = command + ['--name', 'protected', '--set', 'profile_name=' + str(profile)]
+              assert subprocess.run(protected_command, stdout=subprocess.DEVNULL, timeout=120).returncode != 0
+              assert profile.read_text() == 'keep model input'
+              cases = tmp / 'unsafe.cases'
+              cases.write_text('..\n')
+              assert subprocess.run(['bash', 'run_campaign.sh', '--file', str(cases), '--dry-run', '--save', str(tmp / 'campaign')], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL).returncode != 0
+              models = subprocess.check_output(['bash', 'run_campaign.sh', '--list-models'], text=True).split()
+              assert {'n1', 'n3', 'n5', 'n20', 'n40', 'n100', 'n200'}.issubset(models)
+              preview = tmp / 'model preview'
+              assert subprocess.run(command + ['--model', 'N3', '--dry-run', '--save', str(preview)], stdout=subprocess.DEVNULL).returncode == 0
+              prepared = (preview / 'current/parameters.used').read_text()
+              assert 'profile_name = "profiles/ddt_cases/wdprofile_ddt_2013_n3.dat"' in prepared
+              assert 'comp_profile_name = "profiles/ddt_cases/wdcomp_ddt_2013_n3.dat"' in prepared
+              cases.write_text('first | tend=1d4\nsecond | tend=2d4\n')
+              assert subprocess.run(['bash', 'run_campaign.sh', '--base', 'example/parameters.quickstart', '--file', str(cases), '--set', 'tend=3d4', '--dry-run', '--save', str(preview)], stdout=subprocess.DEVNULL).returncode == 0
+              assert 'tend = 1d4' in (preview / 'first/parameters.used').read_text()
+              assert 'tend = 2d4' in (preview / 'second/parameters.used').read_text()
+              kept = (preview / 'current/parameters.used').read_bytes()
+              assert subprocess.run(command + ['--dry-run', '--save', str(preview), '--set', 'unknown_typo=1'], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL).returncode != 0
+              assert (preview / 'current/parameters.used').read_bytes() == kept
+          PYTHON

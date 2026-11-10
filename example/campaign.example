@@ -1,0 +1,12 @@
+# Start from the root parameters and change only the settings shown
+# Add profile_name and comp_profile_name together to select another ejecta model
+# Preview with: ./run_campaign.sh --file example/campaign.example --dry-run
+
+# No-CSM control, evolved for ten days.
+control | simulation_mode=single | csm=none | tend=8.64d5
+
+# Finite shell at a physical encounter radius
+uniform_shell | simulation_mode=staged_pipeline | csm=active | mass_scheme=constant_density | staged_n_shells=1 | staged_shell_inner_radii_cm=6.0d14 | staged_shell_widths_cm=7.0d14 | staged_shell_masses_msun=0.01d0 | staged_final_day=10.0d0
+
+# One non-constant wind encounter using the fixed Badenes history
+variable_wind | simulation_mode=staged_pipeline | csm=active | mass_scheme=non_constant_mass_loss | csm_wind_velocity_kms=2.0d2 | staged_n_shells=1 | staged_shell_inner_radii_cm=6.0d14 | staged_shell_widths_cm=7.0d14 | staged_final_day=10.0d0
