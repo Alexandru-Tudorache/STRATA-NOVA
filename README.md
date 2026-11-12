@@ -262,20 +262,3 @@ the VizieR service acknowledgement recorded in `Analysis/DATA/README.md`.
 The software licence and the original sources' data terms remain distinct.
 Bundling these comparison inputs does not make their original simulations or
 measurements STRATA-NOVA work. Attribution and source links accompany them.
-
-## Source distribution
-
-The source distribution includes the solver, seven DDT pairs, W7, comparison
-tables, campaign examples, the project guide and its figures. Generated run
-outputs and compiler products are excluded. `.gitignore` and `.gitattributes`
-use the same model/data selection so a checkout and a source archive agree.
-
-After committing the final file selection, an archive can be made with:
-
-```sh
-git archive --format=zip --output=/path/to/STRATA-NOVA-public.zip HEAD
-```
-
-`git archive HEAD` uses the committed snapshot. It does not include later
-uncommitted edits or model files that have not yet been added. Review the final
-tracked file list before publishing.
