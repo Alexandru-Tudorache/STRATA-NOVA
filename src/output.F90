@@ -412,7 +412,8 @@ subroutine write_run_summary(nsteps)
   write(u,'(A)') '# --- Output configuration ---'
   write(u,'(A,I2)')  'output_mode = ', output_mode
   write(u,'(A)') 'luminosity_public_file = lum_observed.dat'
-  write(u,'(A)') 'lum_observed_definition = all-frequency selected grey luminosity; staged final applies the configured observer-time integration'
+  write(u,'(A)') 'lum_observed_definition = all-frequency selected grey luminosity; ' // &
+       'staged final applies the configured observer-time integration'
   ! keep the old summary keys for existing readers
   write(u,'(A,I2)') 'csm_luminosity_handover_done = ', 0
   write(u,'(A,ES14.6)') 'csm_luminosity_handover_time_s = ', -1.0d0
