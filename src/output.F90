@@ -115,9 +115,6 @@ subroutine output_all(modeflag)
 
   else if(modeflag.eq.2) then
 
-     lum_emergent = max(lum(imax), 0.0d0)
-     if(lum_emergent.ne.lum_emergent) lum_emergent = 0.0d0
-
      filename = trim(adjustl(outdir))//"/lum_observed.dat"
      call output_scalar(lum_public,filename)
 
@@ -277,7 +274,7 @@ end subroutine output_screenshot
 
 subroutine output_hydro_runtime_diagnostics()
 
-  use blmod, only: time, rho, r, cr, vel, cs2, Q, p, mass, shockpos, &
+  use blmod, only: time, rho, r, cr, vel, cs2, shockpos, &
        shockpos_stop, radshock, cfl_limit_zone, cfl_raw_min_dt
   use parameters, only: imax, outdir
   use outinfomod, only: locate_live_csm_interaction
@@ -332,8 +329,7 @@ end subroutine output_hydro_runtime_diagnostics
 subroutine write_run_summary(nsteps)
 
   use blmod, only: time, photosphere_fell_on_the_center, &
-       diag_ni_eval_total, diag_ni_eval_remap, &
-       csm_luminosity_handover_done, csm_luminosity_handover_time
+       diag_ni_eval_total, diag_ni_eval_remap
   use parameters
   use csm_switch, only: csm_generated_active, csm_base_profile_path, &
        csm_base_composition_path, csm_generated_profile_path, &
@@ -417,8 +413,9 @@ subroutine write_run_summary(nsteps)
   write(u,'(A,I2)')  'output_mode = ', output_mode
   write(u,'(A)') 'luminosity_public_file = lum_observed.dat'
   write(u,'(A)') 'lum_observed_definition = all-frequency selected grey luminosity; staged final applies the configured observer-time integration'
-  write(u,'(A,I2)') 'csm_luminosity_handover_done = ', csm_luminosity_handover_done
-  write(u,'(A,ES14.6)') 'csm_luminosity_handover_time_s = ', csm_luminosity_handover_time
+  ! keep the old summary keys for existing readers
+  write(u,'(A,I2)') 'csm_luminosity_handover_done = ', 0
+  write(u,'(A,ES14.6)') 'csm_luminosity_handover_time_s = ', -1.0d0
   write(u,'(A,I2)')  'eoskey = ', eoskey
 
   close(u)

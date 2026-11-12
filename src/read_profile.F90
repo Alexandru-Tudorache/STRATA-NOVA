@@ -92,12 +92,11 @@ end subroutine get_ncomps_from_profile
 subroutine read_profile(prof_name)
 
   use blmod, only: mass, cmass, vel, rho, temp, ncomps, ye, abar, comp_details,&
-                    eps, p, cs2, dedt, dpdt, entropy, zav, p_rad, r, cr, delta_mass, delta_cmass
+                    eps, p, cs2, dedt, dpdt, entropy, zav, p_rad
   use parameters
   use physical_constants
   use eosmodule, only: init_ionpot
-  use csm_switch, only: csm_generated_active, csm_generated_surface_mass_g, &
-       csm_generated_outer_radius_cm
+  use csm_switch, only: csm_generated_active
   implicit none
 
   character(*) :: prof_name
@@ -128,7 +127,7 @@ subroutine read_profile(prof_name)
   preserve_csm_geometry = csm_generated_active
 
   if (preserve_csm_geometry) then
-     call redistribute_wind_outer_grid(profile_zones,pmass,pradius)
+     call redistribute_wind_outer_grid(profile_zones,pmass)
   endif
 
   do i=1,imax
@@ -267,7 +266,7 @@ subroutine map_map(point_value,point_radius,parray,pradius,zones)
 end subroutine map_map
 
   ! reserve hydro mass intervals for the attached csm and its transition
-subroutine redistribute_wind_outer_grid(profile_zones,pmass,pradius)
+subroutine redistribute_wind_outer_grid(profile_zones,pmass)
 
   use blmod, only: mass, cmass, delta_mass, delta_cmass
   use parameters, only: imax, csm_blend_zones, mass_scheme, csm, csm_mass_msun
@@ -276,7 +275,7 @@ subroutine redistribute_wind_outer_grid(profile_zones,pmass,pradius)
   implicit none
 
   integer, intent(in) :: profile_zones
-  real*8, intent(in) :: pmass(profile_zones), pradius(profile_zones)
+  real*8, intent(in) :: pmass(profile_zones)
   integer :: i, j, p_surface, p_bridge_end
   integer :: i_surface, n_csm, n_bridge, n_outer
   real*8 :: mstart, mend, msurf, mbridge, frac

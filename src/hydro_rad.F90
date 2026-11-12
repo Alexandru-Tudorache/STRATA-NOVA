@@ -36,9 +36,6 @@ subroutine hydro_rad
 
   diag_rad_energy_residual_erg = 0.0d0
   diag_rad_energy_residual_max = 0.0d0
-  diag_temp_floor_zones = 0
-  diag_radius_clamps = 0
-  diag_velocity_caps = 0
   lum_old(:) = lum(:)
 
   theta = 0.5d0
@@ -333,8 +330,6 @@ subroutine hydro_rad
   call luminosity(r(:),temp(:),kappa(:),lambda(:),inv_kappa(:),lum(:))
 
   ! measure the accepted discrete energy residual
-  diag_temp_floor_zones = count(temp(1:imax-1) .le. &
-       evolution_temperature_floor_k*(1.0d0+1.0d-10))
   do i=1,imax-1
      divL_old = (lum_old(i+1)-lum_old(i))/delta_mass(i)
      divL_new = (lum(i+1)-lum(i))/delta_mass(i)

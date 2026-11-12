@@ -55,14 +55,18 @@ subroutine allocate_vars
      ion_fractions(:,:,:) = 0.0d0
   endif
 
-  allocate(photosphere_tracer(imax))
+  ! allocate full-output diagnostics only when requested
+  if (output_mode.eq.0) then
+     allocate(photosphere_tracer(imax))
+   
+   ! variables, used in analysis
+     allocate(E_shell(imax))
+     allocate(time_diff(imax))
+     allocate(time_exp(imax))
+   
+   ! quantities related to the heating by radioactive Ni
+  endif
 
-! variables, used in analysis
-  allocate(E_shell(imax))
-  allocate(time_diff(imax))
-  allocate(time_exp(imax))
-
-! quantities related to the heating by radioactive Ni
   allocate(Ni_deposit_function(imax))
   allocate(Ni_heating(imax))
 
@@ -124,11 +128,13 @@ subroutine initialize_vars
     metallicity(:) = 0.0d0
     bomb_heating(:) = 0.0d0
 
-    photosphere_tracer(:) = 0.0d0
-
-    E_shell(:)   = 0.0d0
-    time_diff(:) = 0.0d0
-    time_exp(:)  = 0.0d0
+    if (output_mode.eq.0) then
+       photosphere_tracer(:) = 0.0d0
+   
+       E_shell(:)   = 0.0d0
+       time_diff(:) = 0.0d0
+       time_exp(:)  = 0.0d0
+    endif
 
     Ni_deposit_function(:) = 0.0d0
     Ni_heating(:) = 0.0d0

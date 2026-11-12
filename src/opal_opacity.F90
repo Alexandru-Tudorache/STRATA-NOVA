@@ -1,4 +1,3 @@
-      subroutine instruct
 !
 ! The vast majority of the code in this file is from the OPAL opacity
 ! project: http://opalopacity.llnl.gov/
@@ -125,13 +124,9 @@
 !    DOPACTD     Is Dlog(kappa)/Dlog(T6)   !at constant density
 !    DOPACR      Is Dlog(kappa)/Dlog(R),   !at constant T6
 !
-      dum=0.0
-      return
-      end
   ! interpolate the inherited opal tables at the requested mixture and state
       subroutine opac(z,xh,xxc,xxo,t6,r)
       save
-      integer w
       parameter (mx=5,mc=8,mo=8,nrm=19,nrb=1,nre=19,nr=nre+1-nrb &
           ,ntabs=60,ntm=134,ntb=1,nt=ntm+1-ntb)
       common/aaa/ oxf(mx,mc),cxf(mx,mc),xcdf(mx,mc),xodf(mx,mc), &

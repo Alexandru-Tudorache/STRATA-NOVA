@@ -20,9 +20,6 @@ module blmod
  real*8  :: diag_rad_energy_residual_erg = 0.0d0 ! mass-integrated discrete rad-energy residual
  real*8  :: cumulative_rad_equation_residual = 0.0d0 ! sum over accepted rad steps [erg]
  real*8  :: diag_rad_energy_residual_max = 0.0d0 ! max abs specific residual [erg/g]
- integer :: diag_temp_floor_zones = 0
- integer :: diag_radius_clamps = 0
- integer :: diag_velocity_caps = 0
  logical :: diag_analysis_called = .false.
  integer :: diag_ni_eval_total = 0     ! total nickel_heating() calls
  integer :: diag_ni_eval_remap = 0     ! Ni evals forced by grid remap
@@ -109,7 +106,7 @@ real*8, allocatable :: p_rad(:)                        ! radiation pressure
 
  ! quantities at the photosphere
  integer :: index_photo
- real*8 :: lum_photo, mass_photo, vel_photo, rad_photo
+ real*8 :: mass_photo, vel_photo, rad_photo
  integer :: photosphere_fell_on_the_center
  integer :: photometry_valid = 1
  real*8 :: temperature_floor_fraction = 0.0d0
@@ -126,13 +123,7 @@ real*8, allocatable :: p_rad(:)                        ! radiation pressure
  integer :: index_lumshell !index of the luminosity shell
  real*8 :: mass_lumshell   !mass coordinate of the luminosity shell
 
- real*8 :: lum_observed    ! legacy SNEC photosphere + explicit Ni luminosity
- real*8 :: lum_emergent = 0.0d0 ! raw outgoing grey-FLD luminosity at the outer boundary
- real*8 :: lum_csm_filtered = 0.0d0 ! selected grey-bolometric luminosity channel
- real*8 :: lum_public = 0.0d0 ! selected all-frequency grey luminosity written to lum_observed.dat
- real*8 :: T_photo_local = 0.0d0
- integer :: csm_luminosity_handover_done = 0
- real*8 :: csm_luminosity_handover_time = -1.0d0
+ real*8 :: lum_public = 0.0d0 ! outgoing grey luminosity
 
 ! numbers of some important elements in the composition profile
  integer :: H_number, He_number, C_number, O_number, Ni_number
@@ -157,7 +148,6 @@ real*8, allocatable :: p_rad(:)                        ! radiation pressure
  real*8 :: magnitudes(11)
  real*8 :: T_eff
  real*8 :: T_color = 5000.0d0 ! common colour temperature for optical and broadband outputs
- real*8 :: T_eff_raw = 0.0d0 ! unfiltered grey photospheric-layer colour temperature
 
 ! quantities related to the heating by radioactive Ni
  real*8, allocatable :: Ni_deposit_function(:)

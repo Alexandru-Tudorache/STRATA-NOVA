@@ -446,27 +446,6 @@ contains
     enddo
   end subroutine cumulative_from_surface
 
-  subroutine geomspace_positive(start_val, end_val, n_terms, values)
-    real*8, intent(in) :: start_val, end_val
-    integer, intent(in) :: n_terms
-    real*8, intent(out) :: values(n_terms)
-    integer :: i
-    real*8 :: log_start, log_end, frac
-
-    if (n_terms.le.0) return
-    if (n_terms.eq.1) then
-       values(1) = end_val
-       return
-    endif
-    log_start = log(max(start_val, floor_abundance))
-    log_end = log(max(end_val, floor_abundance))
-    do i = 1, n_terms
-       frac = dble(i-1) / dble(n_terms-1)
-       values(i) = exp(log_start + frac * (log_end - log_start))
-    enddo
-    values(n_terms) = end_val
-  end subroutine geomspace_positive
-
   function lower_trimmed(text) result(out)
     character(len=*), intent(in) :: text
     character(len=len_trim(adjustl(text))) :: out

@@ -16,13 +16,6 @@ comp_profile_name   = "profiles/ddt_cases/wdcomp_ddt_2013_n100.dat"
 ! profile_name        = "profiles/moriya_cases/wdprofile_moriya_w7_homologous_20ks.dat"
 ! comp_profile_name   = "profiles/moriya_cases/wdcomp_moriya_w7_sourceNi_20ks.dat"
 
-! ===============================
-
-! Piro model
-
-! profile_name        = "profiles/piro_cases/wdprofile_bare.dat"
-! comp_profile_name   = "profiles/piro_cases/wdcomp_bare.dat"
-
 #_____________CSM________________
 
 ! CSM switch: "none" or "active"

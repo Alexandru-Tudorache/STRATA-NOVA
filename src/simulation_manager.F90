@@ -257,7 +257,7 @@ contains
 
     call validate_staged_inputs(n_shells,staged_mass_scheme,shell_inner_radii,shell_mass,shell_width, &
          shell_velocity,shell_extension_zones,shell_blend_zones, &
-         staged_final_day,inherited_imax,inherited_ni_quad,staged_observer_nmu, &
+         inherited_imax,inherited_ni_quad,staged_observer_nmu, &
          inherited_output_mode)
 
     call infer_homologous_age(trim(base_profile), initial_age_s)
@@ -417,12 +417,12 @@ contains
 
   ! check physical ranges and ordering before accepting a handoff
   subroutine validate_staged_inputs(n_shells,mass_scheme_name,times,masses,widths,velocities, &
-       extension_zones,blend_zones,final_day,staged_imax,ni_quad,nmu,output_mode)
+       extension_zones,blend_zones,staged_imax,ni_quad,nmu,output_mode)
     integer, intent(in) :: n_shells, extension_zones(n_shells), blend_zones(n_shells)
     character(len=*), intent(in) :: mass_scheme_name
     integer, intent(in) :: staged_imax, ni_quad, nmu, output_mode
     real*8, intent(in) :: times(n_shells), masses(n_shells), widths(n_shells)
-    real*8, intent(in) :: velocities(n_shells), final_day
+    real*8, intent(in) :: velocities(n_shells)
     integer :: i
     logical :: direct_mass
 
