@@ -96,6 +96,11 @@ observations are in `Analysis/DATA/`; their sources and conventions are recorded
 in [the data README](Analysis/DATA/README.md). Record the code version and
 `parameters.used` with any results you share.
 
+## Development acknowledgement
+
+OpenAI Codex was used as an AI assistant for code development, debugging,
+testing and documentation. Alexandru Tudorache is the project author and maintainer.
+
 ## Attribution and distribution
 
 STRATA-NOVA additions are maintained by Alexandru Tudorache. Cite the software
